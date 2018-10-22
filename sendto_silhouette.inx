@@ -6,7 +6,11 @@
   <dependency type="executable" location="extensions">inkex.py</dependency>
   <dependency type="executable" location="extensions">sendto_silhouette.py</dependency>
   <param name="active-tab" type="notebook">
-    <page name='silhouette' _gui-text='Silhouette'>
+      <page name='silhouette' _gui-text='Silhouette'>
+      <param name="device" type="enum" _gui-text="Device:">
+        <item value="local">Local USB Device</item>
+        <item value="harry.lab.fablab-nea.de|0b4d:112b">Harry Plotter</item>
+      </param>
       <param name="x_off" type="float" min="-999.0" max="999.0" _gui-text="X-Offset [mm]">0.0</param>
       <param name="y_off" type="float" min="-999.0" max="999.0" _gui-text="Y-Offset [mm]">0.0</param>
       <param name="tool" type="enum" _gui-text="Tool:">

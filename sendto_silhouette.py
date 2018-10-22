@@ -87,7 +87,7 @@ __version__ = '1.19'	# Keep in sync with sendto_silhouette.inx ca line 79
 __author__ = 'Juergen Weigert <juewei@fabmail.org> and contributors'
 
 import sys, os, shutil, time, logging, tempfile
-
+from subprocess import call
 
 # we sys.path.append() the directory where this
 # sendto_silhouette.py script lives. Attempt to help with
@@ -261,6 +261,9 @@ class SendtoSilhouette(inkex.Effect):
       self.tty = open(os.devnull, 'w')  # '/dev/null' for POSIX, 'nul' for Windows.
     # print >>self.tty, "__init__"
 
+    self.OptionParser.add_option('-D', '--device',
+          action = 'store', dest = 'device', default = "local",
+          help="Device to send job to, 'local' for locally attached devices via USB, 'hostname|idVendor:idProduct for usbip device")
     self.OptionParser.add_option('--active-tab', action = 'store', dest = 'active_tab',
           help=SUPPRESS_HELP)
     self.OptionParser.add_option('-d', '--dashes',
@@ -958,6 +961,7 @@ class SendtoSilhouette(inkex.Effect):
     return dist_sq(XY_a(path[0]), XY_a(path[-1])) < 0.01
 
   def effect(self):
+    self.attach_device(True)
     if self.options.version:
       print __version__
       sys.exit(0)
@@ -1154,6 +1158,15 @@ class SendtoSilhouette(inkex.Effect):
       logging.error('Failed to put output to device')
     output = ""
     return output
+    self.attach_device(False)
+
+  def attach_device(self, state=False):
+    if self.options.device is not None and self.options.device != "local":
+        call([
+            "/usr/bin/sudo",
+            "/usr/share/inkscape/extensions/silhouette/usbip.sh",
+            "attach" if state else "detach"
+            ] + self.options.device.split('|')[0:2])
 
 if __name__ == '__main__':
         e = SendtoSilhouette()
@@ -1175,4 +1188,7 @@ if __name__ == '__main__':
         mm = int(ss/60)
         ss -= mm*60
         print >>e.tty, " done. %d min %d sec" % (mm,ss)
+        if e.options.device is not None and e.options.device != "local":
+            call(["/usr/bin/sudo", "/usr/share/inkscape/extensions/silhouette/usbip.sh", "detach"] + e.options.device.split('|')[0:2])
+
         sys.exit(0)    # helps to keep the selection
